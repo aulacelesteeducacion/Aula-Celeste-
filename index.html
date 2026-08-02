@@ -161,6 +161,10 @@
           <label>Tu nombre completo</label>
           <input type="text" id="nombre" placeholder="Ej: María González" autocomplete="name" />
         </div>
+        <div class="field-wrap">
+          <label>Tu número de celular (WhatsApp)</label>
+          <input type="tel" id="celular" placeholder="Ej: 912345678" autocomplete="tel" />
+        </div>
         <button class="btn-primary" onclick="agendar()">✅ Confirmar agendamiento</button>
       </div>
 
@@ -338,6 +342,7 @@
         <div class="admin-info">
           <span class="admin-name">${r.nombre}</span>
           <span class="admin-detail">📅 ${fechaStr} · ${r.hora} – ${finStr}</span>
+          <span class="admin-detail">📱 ${r.celular ? `<a href="https://wa.me/56${r.celular}" target="_blank" style="color:#25d366;font-weight:600;text-decoration:none;">💬 WhatsApp ${r.celular}</a>` : 'Sin número'}</span>
           <span class="admin-ts">Agendado el ${tsStr}</span>
         </div>
         <div class="admin-actions">
@@ -365,16 +370,20 @@
 
   window.agendar = async () => {
     const nombre = document.getElementById('nombre').value.trim();
+    const celular = document.getElementById('celular').value.trim();
     if (!nombre) { mostrarMsg('msg-docente', 'error', 'Por favor ingresa tu nombre.'); return; }
+    if (!celular) { mostrarMsg('msg-docente', 'error', 'Por favor ingresa tu número de celular.'); return; }
+    if (!/^\d{8,12}$/.test(celular.replace(/\s/g,''))) { mostrarMsg('msg-docente', 'error', 'Ingresa un número válido (solo dígitos, sin +56).'); return; }
     if (!seleccionado) { mostrarMsg('msg-docente', 'error', 'Selecciona un bloque horario.'); return; }
     if (reservas.find(r => r.diaISO === seleccionado.diaISO && r.hora === seleccionado.hora)) {
       mostrarMsg('msg-docente', 'error', 'Ese bloque ya fue reservado. Elige otro.'); return;
     }
     try {
       const fecha = new Date(seleccionado.diaISO + 'T12:00:00');
-      await addDoc(colRef, { diaISO: seleccionado.diaISO, hora: seleccionado.hora, nombre, ts: Date.now(), fechaLabel: `${DIAS_ES[fecha.getDay()]} ${formatFecha(fecha)}` });
+      await addDoc(colRef, { diaISO: seleccionado.diaISO, hora: seleccionado.hora, nombre, celular: celular.replace(/\s/g,''), ts: Date.now(), fechaLabel: `${DIAS_ES[fecha.getDay()]} ${formatFecha(fecha)}` });
       mostrarMsg('msg-docente', 'success', `¡Listo, ${nombre}! Agendado para el ${DIAS_ES[fecha.getDay()]} ${formatFecha(fecha)} a las ${seleccionado.hora}.`);
       document.getElementById('nombre').value = '';
+      document.getElementById('celular').value = '';
       seleccionado = null;
     } catch(e) { mostrarMsg('msg-docente', 'error', 'Error al guardar. Revisa tu conexión.'); }
   };
