@@ -84,7 +84,6 @@
     .field-wrap label { display: block; font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
     .field-wrap input { width: 100%; padding: 11px 14px; border: 1.5px solid var(--border); border-radius: var(--radius); font-size: 15px; color: var(--text); background: var(--surface); outline: none; transition: border-color 0.15s; }
     .field-wrap input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(21,101,192,0.1); }
-    .field-hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
     .btn-primary { width: 100%; padding: 13px; background: linear-gradient(135deg, #1565c0, #1e88e5); color: #fff; border: none; border-radius: var(--radius); font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.15s; box-shadow: 0 4px 12px rgba(21,101,192,0.3); }
     .btn-primary:hover { background: linear-gradient(135deg, #0d47a1, #1565c0); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(21,101,192,0.4); }
     .msg { padding: 12px 16px; border-radius: var(--radius); font-size: 14px; margin-bottom: 1rem; display: none; font-weight: 500; }
@@ -99,21 +98,17 @@
     .stat-num { font-size: 24px; font-weight: 800; color: var(--text); }
     .stat-label { font-size: 11px; color: var(--text-secondary); margin-top: 2px; font-weight: 500; }
 
-    .admin-row { display: flex; align-items: center; justify-content: space-between; padding: 13px 16px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); margin-bottom: 8px; gap: 12px; transition: box-shadow 0.15s; flex-wrap: wrap; }
+    .admin-row { display: flex; align-items: center; justify-content: space-between; padding: 13px 16px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); margin-bottom: 8px; gap: 12px; transition: box-shadow 0.15s; }
     .admin-row:hover { box-shadow: 0 2px 8px rgba(21,101,192,0.08); }
-    .admin-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
+    .admin-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
     .admin-name { font-size: 14px; font-weight: 700; color: var(--text); }
     .admin-detail { font-size: 12px; color: var(--text-secondary); }
     .admin-ts { font-size: 11px; color: var(--text-muted); }
-    .admin-phone { font-size: 12px; color: var(--text-secondary); font-weight: 600; }
-    .admin-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; flex-wrap: wrap; }
+    .admin-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
     .tag { font-size: 11px; padding: 3px 10px; border-radius: 20px; background: var(--accent-bg); color: var(--accent-text); font-weight: 600; white-space: nowrap; }
     .tag.next { background: var(--green-bg); color: var(--green); }
     .del-btn { background: none; border: 1px solid var(--border); border-radius: 7px; padding: 5px 10px; font-size: 12px; color: var(--text-secondary); cursor: pointer; transition: all 0.15s; }
     .del-btn:hover { border-color: #fca5a5; color: var(--danger-text); background: var(--danger-bg); }
-    .wa-btn { display: inline-flex; align-items: center; gap: 5px; background: #25D366; color: #fff; border: none; border-radius: 7px; padding: 6px 12px; font-size: 12px; font-weight: 700; cursor: pointer; text-decoration: none; transition: all 0.15s; }
-    .wa-btn:hover { background: #1DA851; transform: translateY(-1px); box-shadow: 0 3px 8px rgba(37,211,102,0.4); }
-    .wa-btn.disabled { background: #cbd5e1; cursor: not-allowed; pointer-events: none; }
     .empty { text-align: center; padding: 3rem 1rem; color: var(--text-muted); font-size: 14px; }
     .loading { text-align: center; padding: 2rem; color: var(--text-muted); font-size: 14px; }
 
@@ -165,11 +160,6 @@
         <div class="field-wrap" style="margin-top:1.25rem">
           <label>Tu nombre completo</label>
           <input type="text" id="nombre" placeholder="Ej: María González" autocomplete="name" />
-        </div>
-        <div class="field-wrap">
-          <label>Tu número de WhatsApp 📱</label>
-          <input type="tel" id="telefono" placeholder="Ej: 9 1234 5678" autocomplete="tel" inputmode="numeric" />
-          <div class="field-hint">A este número te enviaremos el link de la reunión. Escribe tu celular con 9 dígitos (ej: 912345678).</div>
         </div>
         <button class="btn-primary" onclick="agendar()">✅ Confirmar agendamiento</button>
       </div>
@@ -235,8 +225,8 @@
     2: { nombre: "Martes",    horas: ["18:00","19:00","20:00"] },
     3: { nombre: "Miércoles", horas: ["18:00","19:00","20:00"] },
     4: { nombre: "Jueves",    horas: ["20:00","21:00","22:00"] },
-    5: { nombre: "Viernes",   horas: ["11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00"] },
-    6: { nombre: "Sábado",    horas: ["11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00"] },
+    5: { nombre: "Viernes",   horas: ["15:00","16:00","17:00","18:00","19:00","20:00","21:00","22:00"] },
+    6: { nombre: "Sábado",    horas: ["11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00","21:00","22:00"] },
   };
 
   const PWD = "Romina12";
@@ -289,20 +279,6 @@
     if (fecha >= lunes0 && fecha < lunes1) return 0;
     if (fecha >= lunes1 && fecha < lunesSig) return 1;
     return -1;
-  }
-
-  // ── Normalizar número chileno a formato internacional 569XXXXXXXX ──
-  function normalizarFono(raw) {
-    const d = raw.replace(/\D/g, '');            // solo dígitos
-    if (d.length === 9 && d.startsWith('9'))  return '56' + d;    // 912345678
-    if (d.length === 11 && d.startsWith('569')) return d;          // 56912345678
-    if (d.length === 8)                        return '569' + d;   // 12345678 (sin el 9)
-    return null; // formato no reconocido
-  }
-  function fmtFono(f) {
-    // 56912345678 → +56 9 1234 5678
-    if (!f || f.length !== 11) return f || '';
-    return `+${f.slice(0,2)} ${f.slice(2,3)} ${f.slice(3,7)} ${f.slice(7)}`;
   }
 
   function renderBloques() {
@@ -358,24 +334,14 @@
       const fechaStr = `${DIAS_ES[fecha.getDay()]} ${formatFecha(fecha)}`;
       const finStr = `${String(parseInt(r.hora.split(':')[0])+1).padStart(2,'0')}:00`;
       const tsStr = new Date(r.ts).toLocaleDateString('es-CL', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
-      // Botón WhatsApp con mensaje pre-armado
-      let waHtml = '';
-      if (r.telefono) {
-        const msgWa = encodeURIComponent(`Hola ${r.nombre} 👋 Te confirmo tu reunión de coordinación de Aula Celeste para el ${fechaStr} a las ${r.hora} hrs. Este es el link de la reunión: `);
-        waHtml = `<a class="wa-btn" href="https://wa.me/${r.telefono}?text=${msgWa}" target="_blank" title="Enviar link por WhatsApp">💬 WhatsApp</a>`;
-      } else {
-        waHtml = `<span class="wa-btn disabled" title="Sin número registrado">📵 Sin número</span>`;
-      }
       return `<div class="admin-row">
         <div class="admin-info">
           <span class="admin-name">${r.nombre}</span>
           <span class="admin-detail">📅 ${fechaStr} · ${r.hora} – ${finStr}</span>
-          ${r.telefono ? `<span class="admin-phone">📱 ${fmtFono(r.telefono)}</span>` : ''}
           <span class="admin-ts">Agendado el ${tsStr}</span>
         </div>
         <div class="admin-actions">
           <span class="tag ${semanaR === 1 ? 'next' : ''}">${semanaR === 0 ? 'Esta sem.' : 'Próx. sem.'}</span>
-          ${waHtml}
           <button class="del-btn" onclick="window._del('${r.id}')">Cancelar</button>
         </div>
       </div>`;
@@ -399,21 +365,16 @@
 
   window.agendar = async () => {
     const nombre = document.getElementById('nombre').value.trim();
-    const fonoRaw = document.getElementById('telefono').value.trim();
     if (!nombre) { mostrarMsg('msg-docente', 'error', 'Por favor ingresa tu nombre.'); return; }
-    if (!fonoRaw) { mostrarMsg('msg-docente', 'error', 'Por favor ingresa tu número de WhatsApp para enviarte el link de la reunión.'); return; }
-    const telefono = normalizarFono(fonoRaw);
-    if (!telefono) { mostrarMsg('msg-docente', 'error', 'El número no parece válido. Escribe tu celular con 9 dígitos, ej: 912345678.'); return; }
     if (!seleccionado) { mostrarMsg('msg-docente', 'error', 'Selecciona un bloque horario.'); return; }
     if (reservas.find(r => r.diaISO === seleccionado.diaISO && r.hora === seleccionado.hora)) {
       mostrarMsg('msg-docente', 'error', 'Ese bloque ya fue reservado. Elige otro.'); return;
     }
     try {
       const fecha = new Date(seleccionado.diaISO + 'T12:00:00');
-      await addDoc(colRef, { diaISO: seleccionado.diaISO, hora: seleccionado.hora, nombre, telefono, ts: Date.now(), fechaLabel: `${DIAS_ES[fecha.getDay()]} ${formatFecha(fecha)}` });
-      mostrarMsg('msg-docente', 'success', `¡Listo, ${nombre}! Agendado para el ${DIAS_ES[fecha.getDay()]} ${formatFecha(fecha)} a las ${seleccionado.hora}. Te enviaremos el link de la reunión a tu WhatsApp. 📲`);
+      await addDoc(colRef, { diaISO: seleccionado.diaISO, hora: seleccionado.hora, nombre, ts: Date.now(), fechaLabel: `${DIAS_ES[fecha.getDay()]} ${formatFecha(fecha)}` });
+      mostrarMsg('msg-docente', 'success', `¡Listo, ${nombre}! Agendado para el ${DIAS_ES[fecha.getDay()]} ${formatFecha(fecha)} a las ${seleccionado.hora}.`);
       document.getElementById('nombre').value = '';
-      document.getElementById('telefono').value = '';
       seleccionado = null;
     } catch(e) { mostrarMsg('msg-docente', 'error', 'Error al guardar. Revisa tu conexión.'); }
   };
