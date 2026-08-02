@@ -163,7 +163,7 @@
         </div>
         <div class="field-wrap">
           <label>Tu número de celular (WhatsApp)</label>
-          <input type="tel" id="celular" placeholder="Ej: 912345678" autocomplete="tel" />
+          <input type="tel" id="celular" placeholder="Ej: 912345678 o +56912345678" autocomplete="tel" />
         </div>
         <button class="btn-primary" onclick="agendar()">✅ Confirmar agendamiento</button>
       </div>
@@ -373,14 +373,15 @@
     const celular = document.getElementById('celular').value.trim();
     if (!nombre) { mostrarMsg('msg-docente', 'error', 'Por favor ingresa tu nombre.'); return; }
     if (!celular) { mostrarMsg('msg-docente', 'error', 'Por favor ingresa tu número de celular.'); return; }
-    if (!/^\d{8,12}$/.test(celular.replace(/\s/g,''))) { mostrarMsg('msg-docente', 'error', 'Ingresa un número válido (solo dígitos, sin +56).'); return; }
+    const celularLimpio = celular.replace(/\s|-/g,'').replace(/^\+56/,'').replace(/^56/,'');
+    if (!/^\d{8,9}$/.test(celularLimpio)) { mostrarMsg('msg-docente', 'error', 'Ingresa un número válido. Ej: 912345678 o +56912345678'); return; }
     if (!seleccionado) { mostrarMsg('msg-docente', 'error', 'Selecciona un bloque horario.'); return; }
     if (reservas.find(r => r.diaISO === seleccionado.diaISO && r.hora === seleccionado.hora)) {
       mostrarMsg('msg-docente', 'error', 'Ese bloque ya fue reservado. Elige otro.'); return;
     }
     try {
       const fecha = new Date(seleccionado.diaISO + 'T12:00:00');
-      await addDoc(colRef, { diaISO: seleccionado.diaISO, hora: seleccionado.hora, nombre, celular: celular.replace(/\s/g,''), ts: Date.now(), fechaLabel: `${DIAS_ES[fecha.getDay()]} ${formatFecha(fecha)}` });
+      await addDoc(colRef, { diaISO: seleccionado.diaISO, hora: seleccionado.hora, nombre, celular: celularLimpio, ts: Date.now(), fechaLabel: `${DIAS_ES[fecha.getDay()]} ${formatFecha(fecha)}` });
       mostrarMsg('msg-docente', 'success', `¡Listo, ${nombre}! Agendado para el ${DIAS_ES[fecha.getDay()]} ${formatFecha(fecha)} a las ${seleccionado.hora}.`);
       document.getElementById('nombre').value = '';
       document.getElementById('celular').value = '';
