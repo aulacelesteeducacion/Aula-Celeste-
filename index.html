@@ -7,169 +7,202 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --bg: #f0f4f8;
+      --bg: #eef6ff;
       --surface: #ffffff;
-      --surface2: #f8fafc;
-      --border: #e2e8f0;
-      --text: #1e293b;
-      --text-secondary: #64748b;
-      --text-muted: #94a3b8;
-      --accent: #3b82f6;
-      --accent-hover: #2563eb;
-      --accent-bg: #eff6ff;
-      --accent-text: #1d4ed8;
-      --success-bg: #f0fdf4;
-      --success-text: #166534;
+      --surface2: #f4f9ff;
+      --border: #c8dff7;
+      --text: #1a2f5a;
+      --text-secondary: #4a6fa5;
+      --text-muted: #8aaad4;
+      --accent: #1565c0;
+      --accent-hover: #0d47a1;
+      --accent-bg: #e3f0ff;
+      --accent-text: #1565c0;
+      --yellow: #f9a825;
+      --yellow-bg: #fffde7;
+      --green: #2e7d32;
+      --green-bg: #e8f5e9;
+      --success-bg: #e8f5e9;
+      --success-text: #2e7d32;
       --danger-bg: #fef2f2;
       --danger-text: #991b1b;
       --radius: 10px;
     }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 2rem 1rem; }
-    .container { max-width: 720px; margin: 0 auto; }
-    header { text-align: center; margin-bottom: 2rem; }
-    .logo { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 6px; }
-    .logo-icon { width: 42px; height: 42px; background: var(--accent); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
-    .logo-icon svg { width: 22px; height: 22px; }
-    header h1 { font-size: 22px; font-weight: 700; }
-    header p { font-size: 14px; color: var(--text-secondary); margin-top: 4px; }
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; margin-bottom: 1rem; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 0 0 2rem; }
+
+    /* Header con banner */
+    .site-header {
+      background: linear-gradient(135deg, #1565c0 0%, #1e88e5 50%, #42a5f5 100%);
+      padding: 1.5rem 1rem 2rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .site-header::before {
+      content: '';
+      position: absolute;
+      bottom: -1px; left: 0; right: 0;
+      height: 32px;
+      background: var(--bg);
+      border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+    }
+    .header-inner { display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap; }
+    .header-logo { width: 80px; height: 80px; object-fit: contain; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.2)); }
+    .header-text h1 { font-size: 28px; font-weight: 800; color: #ffffff; text-shadow: 0 2px 8px rgba(0,0,0,0.2); letter-spacing: -0.5px; }
+    .header-text p { font-size: 14px; color: rgba(255,255,255,0.85); margin-top: 2px; font-weight: 400; }
+    .header-badges { display: flex; gap: 8px; justify-content: center; margin-top: 12px; flex-wrap: wrap; }
+    .badge { background: rgba(255,255,255,0.2); color: white; font-size: 11px; padding: 4px 12px; border-radius: 20px; backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.3); }
+
+    .container { max-width: 720px; margin: 0 auto; padding: 1.5rem 1rem 0; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 2px 12px rgba(21,101,192,0.07); }
     .tabs { display: flex; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 4px; gap: 4px; margin-bottom: 1.5rem; }
-    .tab { flex: 1; padding: 9px; font-size: 14px; font-weight: 500; color: var(--text-secondary); background: none; border: none; border-radius: 7px; cursor: pointer; transition: all 0.15s; }
-    .tab.active { background: var(--surface); color: var(--accent); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-    .tab:hover:not(.active) { color: var(--text); }
+    .tab { flex: 1; padding: 9px; font-size: 14px; font-weight: 600; color: var(--text-secondary); background: none; border: none; border-radius: 7px; cursor: pointer; transition: all 0.15s; }
+    .tab.active { background: var(--accent); color: #fff; box-shadow: 0 2px 8px rgba(21,101,192,0.3); }
+    .tab:hover:not(.active) { color: var(--accent); background: var(--accent-bg); }
     .view { display: none; } .view.active { display: block; }
 
-    /* Selector de semana */
-    .week-selector { display: flex; align-items: center; gap: 8px; margin-bottom: 1.25rem; }
-    .week-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 7px 14px; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--text-secondary); transition: all 0.15s; }
-    .week-btn.active { background: var(--accent-bg); border-color: var(--accent); color: var(--accent-text); }
+    .week-selector { display: flex; gap: 8px; margin-bottom: 1.25rem; }
+    .week-btn { flex: 1; padding: 10px; background: var(--surface2); border: 1.5px solid var(--border); border-radius: var(--radius); font-size: 13px; font-weight: 600; cursor: pointer; color: var(--text-secondary); transition: all 0.15s; text-align: center; }
+    .week-btn.active { background: var(--yellow-bg); border-color: var(--yellow); color: #b45309; }
     .week-btn:hover:not(.active) { border-color: var(--accent); color: var(--accent); }
-    .week-label { font-size: 12px; color: var(--text-muted); flex: 1; text-align: center; }
 
     .section-label { font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 8px; margin-top: 1.25rem; display: flex; align-items: center; gap: 8px; }
     .section-label:first-child { margin-top: 0; }
-    .date-pill { font-size: 11px; background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 2px 8px; color: var(--text-secondary); font-weight: 400; letter-spacing: 0; text-transform: none; }
+    .date-pill { font-size: 11px; background: var(--accent-bg); border: 1px solid var(--border); border-radius: 20px; padding: 2px 10px; color: var(--accent-text); font-weight: 600; letter-spacing: 0; text-transform: none; }
     .block-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin-bottom: 0.5rem; }
-    .block { border: 1px solid var(--border); border-radius: var(--radius); padding: 11px 12px; cursor: pointer; transition: all 0.15s; background: var(--surface); }
-    .block:hover { border-color: var(--accent); background: var(--accent-bg); }
-    .block.selected { border-color: var(--accent); background: var(--accent-bg); box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
+    .block { border: 1.5px solid var(--border); border-radius: var(--radius); padding: 11px 12px; cursor: pointer; transition: all 0.15s; background: var(--surface); }
+    .block:hover { border-color: var(--accent); background: var(--accent-bg); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(21,101,192,0.12); }
+    .block.selected { border-color: var(--accent); background: var(--accent-bg); box-shadow: 0 0 0 3px rgba(21,101,192,0.15); }
     .block.taken { opacity: 0.55; cursor: not-allowed; background: var(--surface2); }
     .block.past { opacity: 0.35; cursor: not-allowed; background: var(--surface2); }
-    .block-time { font-size: 13px; font-weight: 600; color: var(--text); }
-    .block-badge { font-size: 10px; margin-top: 5px; padding: 2px 7px; border-radius: 20px; display: inline-block; background: #fee2e2; color: #b91c1c; font-weight: 500; }
+    .block-time { font-size: 13px; font-weight: 700; color: var(--text); }
+    .block-badge { font-size: 10px; margin-top: 5px; padding: 2px 7px; border-radius: 20px; display: inline-block; background: #fee2e2; color: #b91c1c; font-weight: 600; }
     .block-badge.past { background: #f1f5f9; color: #94a3b8; }
     .block-who { font-size: 10px; margin-top: 3px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
     .field-wrap { margin-bottom: 1rem; }
-    .field-wrap label { display: block; font-size: 13px; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px; }
-    .field-wrap input { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 15px; color: var(--text); background: var(--surface); outline: none; transition: border-color 0.15s; }
-    .field-wrap input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
-    .btn-primary { width: 100%; padding: 12px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius); font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
-    .btn-primary:hover { background: var(--accent-hover); }
-    .msg { padding: 12px 16px; border-radius: var(--radius); font-size: 14px; margin-bottom: 1rem; display: none; }
+    .field-wrap label { display: block; font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
+    .field-wrap input { width: 100%; padding: 11px 14px; border: 1.5px solid var(--border); border-radius: var(--radius); font-size: 15px; color: var(--text); background: var(--surface); outline: none; transition: border-color 0.15s; }
+    .field-wrap input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(21,101,192,0.1); }
+    .btn-primary { width: 100%; padding: 13px; background: linear-gradient(135deg, #1565c0, #1e88e5); color: #fff; border: none; border-radius: var(--radius); font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.15s; box-shadow: 0 4px 12px rgba(21,101,192,0.3); }
+    .btn-primary:hover { background: linear-gradient(135deg, #0d47a1, #1565c0); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(21,101,192,0.4); }
+    .msg { padding: 12px 16px; border-radius: var(--radius); font-size: 14px; margin-bottom: 1rem; display: none; font-weight: 500; }
     .msg.success { background: var(--success-bg); color: var(--success-text); display: block; border: 1px solid #bbf7d0; }
     .msg.error { background: var(--danger-bg); color: var(--danger-text); display: block; border: 1px solid #fecaca; }
+
     .stat-bar { display: flex; gap: 8px; margin-bottom: 1.5rem; }
-    .stat { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; text-align: center; }
-    .stat-num { font-size: 22px; font-weight: 700; color: var(--text); }
-    .stat-label { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-    .admin-row { display: flex; align-items: center; justify-content: space-between; padding: 13px 16px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); margin-bottom: 8px; gap: 12px; }
+    .stat { flex: 1; border-radius: var(--radius); padding: 14px; text-align: center; }
+    .stat:nth-child(1) { background: var(--accent-bg); border: 1px solid var(--border); }
+    .stat:nth-child(2) { background: var(--yellow-bg); border: 1px solid #f9a825; }
+    .stat:nth-child(3) { background: var(--green-bg); border: 1px solid #81c784; }
+    .stat-num { font-size: 24px; font-weight: 800; color: var(--text); }
+    .stat-label { font-size: 11px; color: var(--text-secondary); margin-top: 2px; font-weight: 500; }
+
+    .admin-row { display: flex; align-items: center; justify-content: space-between; padding: 13px 16px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); margin-bottom: 8px; gap: 12px; transition: box-shadow 0.15s; }
+    .admin-row:hover { box-shadow: 0 2px 8px rgba(21,101,192,0.08); }
     .admin-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-    .admin-name { font-size: 14px; font-weight: 600; color: var(--text); }
+    .admin-name { font-size: 14px; font-weight: 700; color: var(--text); }
     .admin-detail { font-size: 12px; color: var(--text-secondary); }
     .admin-ts { font-size: 11px; color: var(--text-muted); }
     .admin-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-    .tag { font-size: 11px; padding: 3px 10px; border-radius: 20px; background: var(--accent-bg); color: var(--accent-text); font-weight: 500; white-space: nowrap; }
-    .tag.next { background: #f0fdf4; color: #166534; }
+    .tag { font-size: 11px; padding: 3px 10px; border-radius: 20px; background: var(--accent-bg); color: var(--accent-text); font-weight: 600; white-space: nowrap; }
+    .tag.next { background: var(--green-bg); color: var(--green); }
     .del-btn { background: none; border: 1px solid var(--border); border-radius: 7px; padding: 5px 10px; font-size: 12px; color: var(--text-secondary); cursor: pointer; transition: all 0.15s; }
     .del-btn:hover { border-color: #fca5a5; color: var(--danger-text); background: var(--danger-bg); }
     .empty { text-align: center; padding: 3rem 1rem; color: var(--text-muted); font-size: 14px; }
     .loading { text-align: center; padding: 2rem; color: var(--text-muted); font-size: 14px; }
+
     .login-box { text-align: center; padding: 1rem 0; }
-    .login-box .lock-icon { font-size: 36px; margin-bottom: 1rem; }
-    .login-box h3 { font-size: 17px; font-weight: 600; margin-bottom: 6px; }
+    .login-logo { width: 70px; height: 70px; object-fit: contain; margin-bottom: 1rem; }
+    .login-box h3 { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
     .login-box p { font-size: 13px; color: var(--text-secondary); margin-bottom: 1.5rem; }
     .logout-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
-    .logout-bar span { font-size: 13px; color: var(--text-secondary); }
+    .logout-bar span { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
     .logout-btn { background: none; border: 1px solid var(--border); border-radius: 7px; padding: 5px 12px; font-size: 12px; color: var(--text-secondary); cursor: pointer; }
     .logout-btn:hover { border-color: var(--danger-text); color: var(--danger-text); }
     .admin-week-filter { display: flex; gap: 6px; margin-bottom: 1.25rem; flex-wrap: wrap; }
-    .filter-btn { padding: 6px 14px; border: 1px solid var(--border); border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer; background: var(--surface2); color: var(--text-secondary); transition: all 0.15s; }
-    .filter-btn.active { background: var(--accent-bg); border-color: var(--accent); color: var(--accent-text); }
-    footer { text-align: center; font-size: 12px; color: var(--text-muted); margin-top: 2rem; }
+    .filter-btn { padding: 6px 14px; border: 1px solid var(--border); border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; background: var(--surface2); color: var(--text-secondary); transition: all 0.15s; }
+    .filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    footer { text-align: center; font-size: 12px; color: var(--text-muted); margin-top: 2rem; padding: 1rem; }
+    footer img { width: 28px; vertical-align: middle; margin-right: 6px; }
   </style>
 </head>
 <body>
-<div class="container">
-  <header>
-    <div class="logo">
-      <div class="logo-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="4" width="18" height="18" rx="2"/>
-          <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
-          <line x1="3" y1="10" x2="21" y2="10"/>
-        </svg>
-      </div>
-      <h1>Aula Celeste</h1>
-    </div>
-    <p>Sistema de agendamiento para docentes</p>
-  </header>
 
-  <div class="card">
-    <div class="tabs">
-      <button class="tab active" onclick="switchTab('docente', this)">📅 Agendar hora</button>
-      <button class="tab" onclick="switchTab('admin', this)">🔒 Supervisar</button>
-    </div>
-
-    <!-- Vista docente -->
-    <div id="view-docente" class="view active">
-      <div id="msg-docente" class="msg"></div>
-      <div class="week-selector">
-        <button class="week-btn active" id="wb-0" onclick="selSemana(0)">Esta semana</button>
-        <button class="week-btn" id="wb-1" onclick="selSemana(1)">Próxima semana</button>
+  <!-- Header con identidad visual -->
+  <div class="site-header">
+    <div class="header-inner">
+      <img src="logo.png" alt="Aula Celeste" class="header-logo" />
+      <div class="header-text">
+        <h1>Aula Celeste</h1>
+        <p>Tu apoyo en educación</p>
       </div>
-      <div id="bloques-container"><div class="loading">Cargando bloques...</div></div>
-      <div class="field-wrap" style="margin-top:1.25rem">
-        <label>Tu nombre completo</label>
-        <input type="text" id="nombre" placeholder="Ej: María González" autocomplete="name" />
-      </div>
-      <button class="btn-primary" onclick="agendar()">Confirmar agendamiento</button>
     </div>
+    <p style="color:rgba(255,255,255,0.8);font-size:13px;margin-top:10px;">Sistema de agendamientos para el portafolio docente 2026</p>
+  </div>
 
-    <!-- Vista admin -->
-    <div id="view-admin" class="view">
-      <div id="admin-login">
-        <div id="msg-login" class="msg"></div>
-        <div class="login-box">
-          <div class="lock-icon">🔐</div>
-          <h3>Acceso de supervisora</h3>
-          <p>Ingresa la contraseña para ver y gestionar los agendamientos.</p>
-          <div class="field-wrap">
-            <input type="password" id="pwd-input" placeholder="Contraseña" onkeydown="if(event.key==='Enter') verificarPwd()" />
+  <div class="container">
+    <div class="card">
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('docente', this)">📅 Agendar hora</button>
+        <button class="tab" onclick="switchTab('admin', this)">🔒 Supervisar</button>
+      </div>
+
+      <!-- Vista docente -->
+      <div id="view-docente" class="view active">
+        <div id="msg-docente" class="msg"></div>
+        <div class="week-selector">
+          <button class="week-btn active" id="wb-0" onclick="selSemana(0)">⭐ Esta semana</button>
+          <button class="week-btn" id="wb-1" onclick="selSemana(1)">📆 Próxima semana</button>
+        </div>
+        <div id="bloques-container"><div class="loading">Cargando bloques disponibles...</div></div>
+        <div class="field-wrap" style="margin-top:1.25rem">
+          <label>Tu nombre completo</label>
+          <input type="text" id="nombre" placeholder="Ej: María González" autocomplete="name" />
+        </div>
+        <button class="btn-primary" onclick="agendar()">✅ Confirmar agendamiento</button>
+      </div>
+
+      <!-- Vista admin -->
+      <div id="view-admin" class="view">
+        <div id="admin-login">
+          <div id="msg-login" class="msg"></div>
+          <div class="login-box">
+            <img src="logo.png" alt="Logo" class="login-logo" />
+            <h3>Acceso de supervisión</h3>
+            <p>Ingresa la contraseña para ver y gestionar los agendamientos.</p>
+            <div class="field-wrap">
+              <input type="password" id="pwd-input" placeholder="Contraseña" onkeydown="if(event.key==='Enter') verificarPwd()" />
+            </div>
+            <button class="btn-primary" onclick="verificarPwd()">🔐 Ingresar</button>
           </div>
-          <button class="btn-primary" onclick="verificarPwd()">Ingresar</button>
         </div>
-      </div>
-      <div id="admin-panel" style="display:none">
-        <div class="logout-bar">
-          <span>👋 Panel de supervisión</span>
-          <button class="logout-btn" onclick="cerrarSesion()">Cerrar sesión</button>
+        <div id="admin-panel" style="display:none">
+          <div class="logout-bar">
+            <span>👋 Panel de supervisión — Aula Celeste</span>
+            <button class="logout-btn" onclick="cerrarSesion()">Cerrar sesión</button>
+          </div>
+          <div class="stat-bar">
+            <div class="stat"><div class="stat-num" id="stat-total">—</div><div class="stat-label">Total reservados</div></div>
+            <div class="stat"><div class="stat-num" id="stat-esta">—</div><div class="stat-label">Esta semana</div></div>
+            <div class="stat"><div class="stat-num" id="stat-prox">—</div><div class="stat-label">Próxima semana</div></div>
+          </div>
+          <div class="admin-week-filter">
+            <button class="filter-btn active" id="fb-all" onclick="filtrarAdmin('all')">Todos</button>
+            <button class="filter-btn" id="fb-0" onclick="filtrarAdmin(0)">Esta semana</button>
+            <button class="filter-btn" id="fb-1" onclick="filtrarAdmin(1)">Próxima semana</button>
+          </div>
+          <div id="admin-list"><div class="loading">Cargando...</div></div>
         </div>
-        <div class="stat-bar">
-          <div class="stat"><div class="stat-num" id="stat-total">—</div><div class="stat-label">Total reservados</div></div>
-          <div class="stat"><div class="stat-num" id="stat-esta">—</div><div class="stat-label">Esta semana</div></div>
-          <div class="stat"><div class="stat-num" id="stat-prox">—</div><div class="stat-label">Próxima semana</div></div>
-        </div>
-        <div class="admin-week-filter">
-          <button class="filter-btn active" id="fb-all" onclick="filtrarAdmin('all')">Todos</button>
-          <button class="filter-btn" id="fb-0" onclick="filtrarAdmin(0)">Esta semana</button>
-          <button class="filter-btn" id="fb-1" onclick="filtrarAdmin(1)">Próxima semana</button>
-        </div>
-        <div id="admin-list"><div class="loading">Cargando...</div></div>
       </div>
     </div>
   </div>
-  <footer>Aula Celeste &mdash; Agendamiento de visitas de aula</footer>
-</div>
+
+  <footer>
+    <img src="logo.png" alt="Logo" />
+    Aula Celeste &mdash; Tu apoyo en educación
+  </footer>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -187,7 +220,6 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  // Horarios base por día (0=Lunes ... 5=Sábado)
   const HORARIOS = {
     1: { nombre: "Lunes",     horas: ["20:00","21:00","22:00"] },
     2: { nombre: "Martes",    horas: ["18:00","19:00","20:00"] },
@@ -201,16 +233,15 @@
   const DIAS_ES = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
   const MESES_ES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
 
-  let semanaSeleccionada = 0; // 0 = actual, 1 = próxima
-  let seleccionado = null;    // { semana, diaISO, hora }
+  let semanaSeleccionada = 0;
+  let seleccionado = null;
   let reservas = [];
   let adminAutenticado = false;
   let adminFiltro = 'all';
 
-  // Obtener lunes de la semana actual + offset
   function getLunes(offsetSemana = 0) {
     const hoy = new Date();
-    const dia = hoy.getDay(); // 0=dom
+    const dia = hoy.getDay();
     const diffLunes = (dia === 0) ? -6 : 1 - dia;
     const lunes = new Date(hoy);
     lunes.setDate(hoy.getDate() + diffLunes + offsetSemana * 7);
@@ -224,27 +255,20 @@
     for (let i = 0; i < 6; i++) {
       const d = new Date(lunes);
       d.setDate(lunes.getDate() + i);
-      const dow = d.getDay() === 0 ? 7 : d.getDay(); // 1=lun...6=sab
-      if (HORARIOS[dow]) {
-        dias.push({ fecha: d, dow, config: HORARIOS[dow] });
-      }
+      const dow = d.getDay() === 0 ? 7 : d.getDay();
+      if (HORARIOS[dow]) dias.push({ fecha: d, dow, config: HORARIOS[dow] });
     }
     return dias;
   }
 
-  function isoFecha(fecha) {
-    return fecha.toISOString().split('T')[0];
-  }
-
-  function formatFecha(fecha) {
-    return `${fecha.getDate()} de ${MESES_ES[fecha.getMonth()]}`;
-  }
+  function isoFecha(fecha) { return fecha.toISOString().split('T')[0]; }
+  function formatFecha(fecha) { return `${fecha.getDate()} de ${MESES_ES[fecha.getMonth()]}`; }
 
   function esPasado(fecha, hora) {
     const ahora = new Date();
-    const [h, m] = hora.split(':').map(Number);
+    const [h] = hora.split(':').map(Number);
     const bloque = new Date(fecha);
-    bloque.setHours(h + 1, 0, 0, 0); // considera pasado si ya terminó la hora
+    bloque.setHours(h + 1, 0, 0, 0);
     return bloque < ahora;
   }
 
@@ -257,7 +281,6 @@
     return -1;
   }
 
-  // ── Render bloques docente ────────────────────────────────────────
   function renderBloques() {
     const container = document.getElementById('bloques-container');
     const dias = getDiasDeSemanana(semanaSeleccionada);
@@ -274,8 +297,7 @@
         if (pasado) cls += ' past';
         else if (ocupado) cls += ' taken';
         else if (seleccionado && seleccionado.key === key) cls += ' selected';
-        const finHora = hora.split(':')[0];
-        const finStr = `${String(parseInt(finHora)+1).padStart(2,'0')}:00`;
+        const finStr = `${String(parseInt(hora.split(':')[0])+1).padStart(2,'0')}:00`;
         html += `<div class="${cls}" ${(!ocupado && !pasado) ? `onclick="window._sel('${key}','${iso}','${hora}')"` : ''}>
           <div class="block-time">${hora} – ${finStr}</div>
           ${pasado ? `<div class="block-badge past">Ya pasó</div>` : ''}
@@ -287,19 +309,13 @@
     container.innerHTML = html || '<div class="empty">No hay bloques disponibles</div>';
   }
 
-  window._sel = (key, iso, hora) => {
-    seleccionado = { key, diaISO: iso, hora, semana: semanaSeleccionada };
-    renderBloques();
-  };
-
+  window._sel = (key, iso, hora) => { seleccionado = { key, diaISO: iso, hora }; renderBloques(); };
   window.selSemana = (n) => {
-    semanaSeleccionada = n;
-    seleccionado = null;
+    semanaSeleccionada = n; seleccionado = null;
     document.querySelectorAll('.week-btn').forEach((b,i) => b.classList.toggle('active', i === n));
     renderBloques();
   };
 
-  // ── Render admin ──────────────────────────────────────────────────
   function renderAdmin() {
     const list = document.getElementById('admin-list');
     const esta = reservas.filter(r => getWeekKey(new Date(r.diaISO)) === 0);
@@ -307,21 +323,11 @@
     document.getElementById('stat-total').textContent = reservas.length;
     document.getElementById('stat-esta').textContent = esta.length;
     document.getElementById('stat-prox').textContent = prox.length;
-
     let filtradas = reservas;
     if (adminFiltro === 0) filtradas = esta;
     if (adminFiltro === 1) filtradas = prox;
-
-    if (filtradas.length === 0) {
-      list.innerHTML = '<div class="empty">Sin agendamientos en este período</div>';
-      return;
-    }
-
-    const sorted = [...filtradas].sort((a,b) => {
-      if (a.diaISO !== b.diaISO) return a.diaISO.localeCompare(b.diaISO);
-      return a.hora.localeCompare(b.hora);
-    });
-
+    if (filtradas.length === 0) { list.innerHTML = '<div class="empty">Sin agendamientos en este período</div>'; return; }
+    const sorted = [...filtradas].sort((a,b) => a.diaISO !== b.diaISO ? a.diaISO.localeCompare(b.diaISO) : a.hora.localeCompare(b.hora));
     list.innerHTML = sorted.map(r => {
       const fecha = new Date(r.diaISO + 'T12:00:00');
       const semanaR = getWeekKey(fecha);
@@ -350,7 +356,6 @@
     renderAdmin();
   };
 
-  // ── Firebase ──────────────────────────────────────────────────────
   const colRef = collection(db, "reservas");
   onSnapshot(colRef, (snap) => {
     reservas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -367,19 +372,11 @@
     }
     try {
       const fecha = new Date(seleccionado.diaISO + 'T12:00:00');
-      await addDoc(colRef, {
-        diaISO: seleccionado.diaISO,
-        hora: seleccionado.hora,
-        nombre,
-        ts: Date.now(),
-        fechaLabel: `${DIAS_ES[fecha.getDay()]} ${formatFecha(fecha)}`
-      });
-      mostrarMsg('msg-docente', 'success', `¡Listo, ${nombre}! Quedaste agendado para el ${DIAS_ES[fecha.getDay()]} ${formatFecha(fecha)} a las ${seleccionado.hora}.`);
+      await addDoc(colRef, { diaISO: seleccionado.diaISO, hora: seleccionado.hora, nombre, ts: Date.now(), fechaLabel: `${DIAS_ES[fecha.getDay()]} ${formatFecha(fecha)}` });
+      mostrarMsg('msg-docente', 'success', `¡Listo, ${nombre}! Agendado para el ${DIAS_ES[fecha.getDay()]} ${formatFecha(fecha)} a las ${seleccionado.hora}.`);
       document.getElementById('nombre').value = '';
       seleccionado = null;
-    } catch(e) {
-      mostrarMsg('msg-docente', 'error', 'Error al guardar. Revisa tu conexión.');
-    }
+    } catch(e) { mostrarMsg('msg-docente', 'error', 'Error al guardar. Revisa tu conexión.'); }
   };
 
   window._del = async (id) => {
@@ -396,8 +393,7 @@
       renderAdmin();
     } else {
       const el = document.getElementById('msg-login');
-      el.className = 'msg error';
-      el.textContent = 'Contraseña incorrecta.';
+      el.className = 'msg error'; el.textContent = 'Contraseña incorrecta.';
       document.getElementById('pwd-input').value = '';
       setTimeout(() => { el.className = 'msg'; }, 3000);
     }
@@ -419,12 +415,10 @@
 
   function mostrarMsg(id, tipo, texto) {
     const el = document.getElementById(id);
-    el.className = 'msg ' + tipo;
-    el.textContent = texto;
+    el.className = 'msg ' + tipo; el.textContent = texto;
     setTimeout(() => { el.className = 'msg'; }, 5000);
   }
 
-  // Render inicial
   renderBloques();
 </script>
 </body>
