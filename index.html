@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aula Celeste — Agendamiento</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f0f4f8;
+      --surface: #ffffff;
+      --surface2: #f8fafc;
+      --border: #e2e8f0;
+      --text: #1e293b;
+      --text-secondary: #64748b;
+      --text-muted: #94a3b8;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --accent-bg: #eff6ff;
+      --accent-text: #1d4ed8;
+      --success-bg: #f0fdf4;
+      --success-text: #166534;
+      --danger-bg: #fef2f2;
+      --danger-text: #991b1b;
+      --radius: 10px;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 2rem 1rem; }
+    .container { max-width: 700px; margin: 0 auto; }
+    header { text-align: center; margin-bottom: 2rem; }
+    .logo { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+    .logo-icon { width: 42px; height: 42px; background: var(--accent); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+    .logo-icon svg { width: 22px; height: 22px; }
+    header h1 { font-size: 22px; font-weight: 700; }
+    header p { font-size: 14px; color: var(--text-secondary); margin-top: 4px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; margin-bottom: 1rem; }
+    .tabs { display: flex; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 4px; gap: 4px; margin-bottom: 1.5rem; }
+    .tab { flex: 1; padding: 9px; font-size: 14px; font-weight: 500; color: var(--text-secondary); background: none; border: none; border-radius: 7px; cursor: pointer; transition: all 0.15s; }
+    .tab.active { background: var(--surface); color: var(--accent); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .view { display: none; } .view.active { display: block; }
+    .section-label { font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 8px; margin-top: 1.25rem; }
+    .section-label:first-child { margin-top: 0; }
+    .block-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin-bottom: 0.5rem; }
+    .block { border: 1px solid var(--border); border-radius: var(--radius); padding: 11px 12px; cursor: pointer; transition: all 0.15s; background: var(--surface); }
+    .block:hover { border-color: var(--accent); background: var(--accent-bg); }
+    .block.selected { border-color: var(--accent); background: var(--accent-bg); box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
+    .block.taken { opacity: 0.5; cursor: not-allowed; background: var(--surface2); }
+    .block-day { font-size: 11px; color: var(--text-secondary); margin-bottom: 2px; }
+    .block-time { font-size: 13px; font-weight: 600; color: var(--text); }
+    .block-badge { font-size: 10px; margin-top: 5px; padding: 2px 7px; border-radius: 20px; display: inline-block; background: #fee2e2; color: #b91c1c; font-weight: 500; }
+    .block-who { font-size: 10px; margin-top: 3px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .field-wrap { margin-bottom: 1rem; }
+    .field-wrap label { display: block; font-size: 13px; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px; }
+    .field-wrap input { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 15px; color: var(--text); background: var(--surface); outline: none; transition: border-color 0.15s; }
+    .field-wrap input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+    .btn-primary { width: 100%; padding: 12px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius); font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .msg { padding: 12px 16px; border-radius: var(--radius); font-size: 14px; margin-bottom: 1rem; display: none; }
+    .msg.success { background: var(--success-bg); color: var(--success-text); display: block; border: 1px solid #bbf7d0; }
+    .msg.error { background: var(--danger-bg); color: var(--danger-text); display: block; border: 1px solid #fecaca; }
+    .stat-bar { display: flex; gap: 8px; margin-bottom: 1.5rem; }
+    .stat { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; text-align: center; }
+    .stat-num { font-size: 22px; font-weight: 700; color: var(--text); }
+    .stat-label { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .admin-row { display: flex; align-items: center; justify-content: space-between; padding: 13px 16px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); margin-bottom: 8px; gap: 12px; }
+    .admin-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+    .admin-name { font-size: 14px; font-weight: 600; color: var(--text); }
+    .admin-detail { font-size: 12px; color: var(--text-secondary); }
+    .admin-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .tag { font-size: 11px; padding: 3px 10px; border-radius: 20px; background: var(--accent-bg); color: var(--accent-text); font-weight: 500; }
+    .del-btn { background: none; border: 1px solid var(--border); border-radius: 7px; padding: 5px 10px; font-size: 12px; color: var(--text-secondary); cursor: pointer; transition: all 0.15s; }
+    .del-btn:hover { border-color: #fca5a5; color: var(--danger-text); background: var(--danger-bg); }
+    .empty { text-align: center; padding: 3rem 1rem; color: var(--text-muted); font-size: 14px; }
+    .loading { text-align: center; padding: 2rem; color: var(--text-muted); font-size: 14px; }
+    footer { text-align: center; font-size: 12px; color: var(--text-muted); margin-top: 2rem; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+      </div>
+      <h1>Aula Celeste</h1>
+    </div>
+    <p>Sistema de agendamiento para docentes</p>
+  </header>
+
+  <div class="card">
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('docente', this)">📅 Agendar hora</button>
+      <button class="tab" onclick="switchTab('admin', this)">📋 Ver agendamientos</button>
+    </div>
+
+    <div id="view-docente" class="view active">
+      <div id="msg-docente" class="msg"></div>
+      <div id="bloques-container"><div class="loading">Cargando bloques disponibles...</div></div>
+      <div class="field-wrap" style="margin-top:1.25rem">
+        <label>Tu nombre completo</label>
+        <input type="text" id="nombre" placeholder="Ej: María González" autocomplete="name" />
+      </div>
+      <button class="btn-primary" onclick="agendar()">Confirmar agendamiento</button>
+    </div>
+
+    <div id="view-admin" class="view">
+      <div class="stat-bar">
+        <div class="stat"><div class="stat-num" id="stat-total">—</div><div class="stat-label">Reservados</div></div>
+        <div class="stat"><div class="stat-num" id="stat-libres">—</div><div class="stat-label">Disponibles</div></div>
+      </div>
+      <div id="admin-list"><div class="loading">Cargando...</div></div>
+    </div>
+  </div>
+  <footer>Aula Celeste &mdash; Agendamiento de visitas de aula</footer>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyD4x1DPMCzEjY33s3wFKSBAvxSQ0d7svPk",
+    authDomain: "aula-celeste.firebaseapp.com",
+    projectId: "aula-celeste",
+    storageBucket: "aula-celeste.firebasestorage.app",
+    messagingSenderId: "396854876138",
+    appId: "1:396854876138:web:ff19fecbda07842b37c493",
+    measurementId: "G-S582MES8Z4"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // ── Bloques horarios ──────────────────────────────────────────────
+  const BLOQUES = [
+    // Lunes: desde 20:00 — 3 bloques
+    { dia: "Lunes",     hora: "20:00 – 21:00" },
+    { dia: "Lunes",     hora: "21:00 – 22:00" },
+    { dia: "Lunes",     hora: "22:00 – 23:00" },
+    // Martes: desde 18:00 — 3 bloques
+    { dia: "Martes",    hora: "18:00 – 19:00" },
+    { dia: "Martes",    hora: "19:00 – 20:00" },
+    { dia: "Martes",    hora: "20:00 – 21:00" },
+    // Miércoles: desde 18:00 — 3 bloques
+    { dia: "Miércoles", hora: "18:00 – 19:00" },
+    { dia: "Miércoles", hora: "19:00 – 20:00" },
+    { dia: "Miércoles", hora: "20:00 – 21:00" },
+    // Jueves: desde 20:00 — 3 bloques
+    { dia: "Jueves",    hora: "20:00 – 21:00" },
+    { dia: "Jueves",    hora: "21:00 – 22:00" },
+    { dia: "Jueves",    hora: "22:00 – 23:00" },
+    // Viernes: 11:00 – 19:00 — todos los bloques
+    { dia: "Viernes",   hora: "11:00 – 12:00" },
+    { dia: "Viernes",   hora: "12:00 – 13:00" },
+    { dia: "Viernes",   hora: "13:00 – 14:00" },
+    { dia: "Viernes",   hora: "14:00 – 15:00" },
+    { dia: "Viernes",   hora: "15:00 – 16:00" },
+    { dia: "Viernes",   hora: "16:00 – 17:00" },
+    { dia: "Viernes",   hora: "17:00 – 18:00" },
+    { dia: "Viernes",   hora: "18:00 – 19:00" },
+    // Sábado: 11:00 – 19:00 — todos los bloques
+    { dia: "Sábado",    hora: "11:00 – 12:00" },
+    { dia: "Sábado",    hora: "12:00 – 13:00" },
+    { dia: "Sábado",    hora: "13:00 – 14:00" },
+    { dia: "Sábado",    hora: "14:00 – 15:00" },
+    { dia: "Sábado",    hora: "15:00 – 16:00" },
+    { dia: "Sábado",    hora: "16:00 – 17:00" },
+    { dia: "Sábado",    hora: "17:00 – 18:00" },
+    { dia: "Sábado",    hora: "18:00 – 19:00" },
+  ];
+
+  let seleccionado = null;
+  let reservas = [];
+
+  // ── Escuchar cambios en tiempo real ───────────────────────────────
+  const colRef = collection(db, "reservas");
+  onSnapshot(colRef, (snap) => {
+    reservas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderBloques();
+    renderAdmin();
+  });
+
+  // ── Render bloques agrupados por día ──────────────────────────────
+  function renderBloques() {
+    const container = document.getElementById('bloques-container');
+    const dias = [...new Set(BLOQUES.map(b => b.dia))];
+    let html = '';
+    dias.forEach(dia => {
+      html += `<div class="section-label">${dia}</div><div class="block-grid">`;
+      BLOQUES.forEach((b, i) => {
+        if (b.dia !== dia) return;
+        const ocupado = reservas.find(r => r.bloqueIdx === i);
+        const sel = seleccionado === i && !ocupado;
+        html += `<div class="block${ocupado ? ' taken' : ''}${sel ? ' selected' : ''}" ${!ocupado ? `onclick="window._selectBloque(${i})"` : ''}>
+          <div class="block-day">${b.hora}</div>
+          <div class="block-time">${b.hora.split('–')[0].trim()}</div>
+          ${ocupado ? `<div class="block-badge">Reservado</div><div class="block-who">${ocupado.nombre}</div>` : ''}
+        </div>`;
+      });
+      html += '</div>';
+    });
+    container.innerHTML = html;
+  }
+
+  window._selectBloque = (i) => { seleccionado = i; renderBloques(); };
+
+  // ── Render admin ──────────────────────────────────────────────────
+  function renderAdmin() {
+    const list = document.getElementById('admin-list');
+    document.getElementById('stat-total').textContent = reservas.length;
+    document.getElementById('stat-libres').textContent = BLOQUES.length - reservas.length;
+    if (reservas.length === 0) {
+      list.innerHTML = '<div class="empty">Sin agendamientos aún</div>';
+      return;
+    }
+    const sorted = [...reservas].sort((a, b) => a.bloqueIdx - b.bloqueIdx);
+    list.innerHTML = sorted.map(r => {
+      const b = BLOQUES[r.bloqueIdx];
+      return `<div class="admin-row">
+        <div class="admin-info">
+          <span class="admin-name">${r.nombre}</span>
+          <span class="admin-detail">📅 ${b.dia} · ${b.hora}</span>
+        </div>
+        <div class="admin-actions">
+          <span class="tag">${b.dia}</span>
+          <button class="del-btn" onclick="window._eliminar('${r.id}')">Cancelar</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // ── Agendar ───────────────────────────────────────────────────────
+  window.agendar = async () => {
+    const nombre = document.getElementById('nombre').value.trim();
+    if (!nombre) { mostrarMsg('msg-docente', 'error', 'Por favor ingresa tu nombre.'); return; }
+    if (seleccionado === null) { mostrarMsg('msg-docente', 'error', 'Selecciona un bloque horario.'); return; }
+    if (reservas.find(r => r.bloqueIdx === seleccionado)) { mostrarMsg('msg-docente', 'error', 'Ese bloque ya fue reservado. Elige otro.'); return; }
+    try {
+      await addDoc(colRef, { bloqueIdx: seleccionado, nombre, ts: Date.now() });
+      mostrarMsg('msg-docente', 'success', `¡Listo, ${nombre}! Tu bloque quedó reservado.`);
+      document.getElementById('nombre').value = '';
+      seleccionado = null;
+    } catch(e) {
+      mostrarMsg('msg-docente', 'error', 'Error al guardar. Revisa tu conexión.');
+    }
+  };
+
+  // ── Eliminar ──────────────────────────────────────────────────────
+  window._eliminar = async (id) => {
+    if (!confirm('¿Cancelar este agendamiento?')) return;
+    await deleteDoc(doc(db, 'reservas', id));
+  };
+
+  // ── Tabs ──────────────────────────────────────────────────────────
+  window.switchTab = (tab, el) => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('view-' + tab).classList.add('active');
+  };
+
+  function mostrarMsg(id, tipo, texto) {
+    const el = document.getElementById(id);
+    el.className = 'msg ' + tipo;
+    el.textContent = texto;
+    setTimeout(() => { el.className = 'msg'; }, 4000);
+  }
+</script>
+</body>
+</html>
