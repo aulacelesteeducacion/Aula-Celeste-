@@ -210,7 +210,15 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import {
+  getFirestore,
+  connectFirestoreEmulator,
+  collection,
+  addDoc,
+  deleteDoc,
+  doc,
+  onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyD4x1DPMCzEjY33s3wFKSBAvxSQ0d7svPk",
@@ -222,7 +230,50 @@
   };
 
   const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+const db = getFirestore(app);
+
+const esEntornoLocal =
+  window.location.hostname === "localhost" ||
+  window.location.hostname === "127.0.0.1";
+
+if (window.location.protocol === "file:") {
+  document.body.innerHTML = `
+    <main style="
+      max-width: 650px;
+      margin: 60px auto;
+      padding: 30px;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      border: 1px solid #c8dff7;
+      border-radius: 12px;
+      background: white;
+    ">
+      <h2>No abras index.html directamente</h2>
+      <p style="margin-top: 15px;">
+        Inicia Firebase Emulator y abre:
+      </p>
+      <p style="margin-top: 10px;">
+        <strong>http://127.0.0.1:5000</strong>
+      </p>
+    </main>
+  `;
+
+  throw new Error(
+    "La aplicación debe ejecutarse mediante Firebase Hosting Emulator."
+  );
+}
+
+if (esEntornoLocal) {
+  connectFirestoreEmulator(db, "127.0.0.1", 8080);
+
+  console.info(
+    "MODO LOCAL: conectado a Firestore Emulator en 127.0.0.1:8080"
+  );
+} else {
+  console.info(
+    "MODO PRODUCCIÓN: conectado al proyecto Firebase aula-celeste"
+  );
+}
 
   const HORARIOS = {
     1: { nombre: "Lunes",     horas: ["20:00","21:00","22:00"] },
