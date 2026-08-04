@@ -710,20 +710,24 @@
       getFirestore,
       connectFirestoreEmulator,
       collection,
-      onSnapshot
+      doc,
+      onSnapshot,
+      serverTimestamp,
+      writeBatch
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import {
       getAuth,
       connectAuthEmulator,
+      signInAnonymously,
       signInWithEmailAndPassword,
       signOut,
       onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import {
-      getFunctions,
-      connectFunctionsEmulator,
-      httpsCallable
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
+      initializeAppCheck,
+      ReCaptchaV3Provider
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check.js";
+
 
     const firebaseConfig = {
       apiKey: "AIzaSyD4x1DPMCzEjY33s3wFKSBAvxSQ0d7svPk",
@@ -735,16 +739,24 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
-    const functions = getFunctions(
-      app,
-      "southamerica-west1"
-    );
 
     const esEntornoLocal =
-      window.location.hostname === "localhost" ||
-      window.location.hostname === "127.0.0.1";
+      location.hostname === "localhost" ||
+      location.hostname === "127.0.0.1";
+
+    if (esEntornoLocal) {
+      self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+    }
+
+    initializeAppCheck(app, {
+      provider: new ReCaptchaV3Provider(
+        "6LfYkHUtAAAAAB0qrz9jqgBdpNXjL66t2P_jl_DS"
+      ),
+      isTokenAutoRefreshEnabled: true,
+    });
+
+    const db = getFirestore(app);
+    const auth = getAuth(app);
 
     if (window.location.protocol === "file:") {
       document.body.innerHTML = `
@@ -781,29 +793,16 @@
         "http://127.0.0.1:9099",
         { disableWarnings: true }
       );
-      connectFunctionsEmulator(
-        functions,
-        "127.0.0.1",
-        5001
-      );
+
 
       console.info(
-        "MODO LOCAL: conectado a Firestore, Authentication y Functions Emulator"
+        "MODO LOCAL: conectado a Firestore y Authentication Emulator"
       );
     } else {
       console.info(
         "MODO PRODUCCIÓN: conectado al proyecto Firebase aula-celeste"
       );
     }
-    const crearReservaFn = httpsCallable(
-      functions,
-      "crearReserva"
-    );
-
-    const cancelarReservaFn = httpsCallable(
-      functions,
-      "cancelarReserva"
-    );
 
     const HORARIOS = {
       1: { nombre: "Lunes", horas: ["20:00", "21:00", "22:00"] },
@@ -825,6 +824,41 @@
     let unsubscribeReservasPrivadas = null;
     let adminAutenticado = false;
     let adminFiltro = 'all';
+    let iniciandoSesionAnonima = false;
+
+    async function asegurarSesionAnonima() {
+      if (
+        auth.currentUser ||
+        iniciandoSesionAnonima
+      ) {
+        return;
+      }
+
+      iniciandoSesionAnonima = true;
+
+      try {
+        await signInAnonymously(auth);
+
+        console.info(
+          "Sesión pública anónima iniciada."
+        );
+      } catch (error) {
+        console.error(
+          "No fue posible iniciar la sesión anónima:",
+          error
+        );
+
+        mostrarMsg(
+          "msg-docente",
+          "error",
+          "No fue posible iniciar el sistema de reservas."
+        );
+      } finally {
+        iniciandoSesionAnonima = false;
+      }
+    }
+
+
 
     function getLunes(offsetSemana = 0) {
       const hoy = new Date();
@@ -848,6 +882,9 @@
       return dias;
     }
 
+    function crearIdReserva(diaISO, hora) {
+      return `${diaISO}_${hora.replace(":", "-")}`;
+    }
     function isoFecha(fecha) { return fecha.toISOString().split('T')[0]; }
     function formatFecha(fecha) { return `${fecha.getDate()} de ${MESES_ES[fecha.getMonth()]}`; }
 
@@ -1259,14 +1296,54 @@
 
       boton.disabled = true;
       boton.textContent = "Guardando reserva...";
-
       try {
-        await crearReservaFn({
+        await asegurarSesionAnonima();
+
+        const usuario = auth.currentUser;
+
+        if (!usuario) {
+          throw new Error(
+            "No existe una sesión de reserva activa."
+          );
+        }
+
+        const reservaId = crearIdReserva(
+          bloqueSeleccionado.diaISO,
+          bloqueSeleccionado.hora
+        );
+
+        const disponibilidadDocumento = doc(
+          db,
+          "disponibilidad_publica",
+          reservaId
+        );
+
+        const reservaDocumento = doc(
+          db,
+          "reservas_privadas",
+          reservaId
+        );
+
+        const lote = writeBatch(db);
+
+        lote.set(disponibilidadDocumento, {
+          diaISO: bloqueSeleccionado.diaISO,
+          hora: bloqueSeleccionado.hora,
+          ocupado: true,
+          createdAt: serverTimestamp(),
+        });
+
+        lote.set(reservaDocumento, {
           diaISO: bloqueSeleccionado.diaISO,
           hora: bloqueSeleccionado.hora,
           nombre,
           celular: celularLimpio,
+          estado: "activa",
+          ownerUid: usuario.uid,
+          createdAt: serverTimestamp(),
         });
+
+        await lote.commit();
 
         const fecha = new Date(
           `${bloqueSeleccionado.diaISO}T12:00:00`
@@ -1294,29 +1371,19 @@
 
         const codigo = String(error?.code ?? "");
 
-        if (codigo.includes("already-exists")) {
+        if (codigo.includes("permission-denied")) {
           mostrarMsg(
             "msg-docente",
             "error",
-            "Ese horario acaba de ser reservado."
+            "El horario ya fue reservado o los datos no son válidos."
           );
         } else if (
-          codigo.includes("failed-precondition")
+          codigo.includes("unauthenticated")
         ) {
           mostrarMsg(
             "msg-docente",
             "error",
-            error.message ||
-            "El horario seleccionado no está disponible."
-          );
-        } else if (
-          codigo.includes("invalid-argument")
-        ) {
-          mostrarMsg(
-            "msg-docente",
-            "error",
-            error.message ||
-            "Los datos ingresados no son válidos."
+            "No fue posible iniciar la sesión de reserva."
           );
         } else {
           mostrarMsg(
@@ -1325,7 +1392,8 @@
             "No fue posible crear la reserva."
           );
         }
-      } finally {
+      }
+      finally {
         boton.disabled = false;
         boton.textContent =
           "✅ Confirmar agendamiento";
@@ -1341,10 +1409,73 @@
         return;
       }
 
+      const usuario = auth.currentUser;
+
+      if (
+        !usuario ||
+        !adminAutenticado
+      ) {
+        mostrarMsg(
+          "msg-admin",
+          "error",
+          "La sesión administrativa no es válida."
+        );
+
+        await signOut(auth);
+        return;
+      }
+
+      const reserva = reservasPrivadas.find(
+        elemento => elemento.id === reservaId
+      );
+
+      if (!reserva) {
+        mostrarMsg(
+          "msg-admin",
+          "error",
+          "La reserva ya no existe."
+        );
+        return;
+      }
+
       try {
-        await cancelarReservaFn({
+        const disponibilidadDocumento = doc(
+          db,
+          "disponibilidad_publica",
+          reservaId
+        );
+
+        const reservaDocumento = doc(
+          db,
+          "reservas_privadas",
+          reservaId
+        );
+
+        const auditoriaDocumento = doc(
+          collection(
+            db,
+            "auditoria_cancelaciones"
+          )
+        );
+
+        const lote = writeBatch(db);
+
+        lote.set(auditoriaDocumento, {
           reservaId,
+          diaISO: reserva.diaISO,
+          hora: reserva.hora,
+          nombre: reserva.nombre,
+          celular: reserva.celular,
+          estadoAnterior: "activa",
+          canceladaAt: serverTimestamp(),
+          canceladaPorUid: usuario.uid,
+          canceladaPorEmail: usuario.email,
         });
+
+        lote.delete(reservaDocumento);
+        lote.delete(disponibilidadDocumento);
+
+        await lote.commit();
 
         mostrarMsg(
           "msg-admin",
@@ -1359,23 +1490,14 @@
 
         const codigo = String(error?.code ?? "");
 
-        if (codigo.includes("unauthenticated")) {
+        if (codigo.includes("permission-denied")) {
           mostrarMsg(
             "msg-admin",
             "error",
-            "La sesión expiró. Inicia sesión nuevamente."
+            "La cuenta no tiene permisos para cancelar."
           );
 
           await signOut(auth);
-          return;
-        }
-
-        if (codigo.includes("not-found")) {
-          mostrarMsg(
-            "msg-admin",
-            "error",
-            "La reserva ya no existe."
-          );
           return;
         }
 
@@ -1441,89 +1563,102 @@
       el.className = 'msg ' + tipo; el.textContent = texto;
       setTimeout(() => { el.className = 'msg'; }, 5000);
     }
-onAuthStateChanged(auth, async (user) => {
-  adminAutenticado = false;
+    onAuthStateChanged(auth, async (user) => {
+      adminAutenticado = false;
 
-  const login =
-    document.getElementById("admin-login");
+      const login =
+        document.getElementById("admin-login");
 
-  const panel =
-    document.getElementById("admin-panel");
+      const panel =
+        document.getElementById("admin-panel");
 
-  detenerListenerReservasPrivadas();
+      detenerListenerReservasPrivadas();
 
-  if (!user) {
-    login.style.display = "block";
-    panel.style.display = "none";
+      if (!user) {
+        login.style.display = "block";
+        panel.style.display = "none";
 
-    document.getElementById(
-      "pwd-input"
-    ).value = "";
-
-    return;
-  }
-
-  try {
-    const tokenResult =
-      await user.getIdTokenResult(true);
-
-    const esAdmin =
-      tokenResult.claims.admin === true;
-
-    console.info(
-      "Resultado de autorización:",
-      {
-        email: user.email,
-        esAdmin,
+        await asegurarSesionAnonima();
+        return;
       }
-    );
 
-    if (!esAdmin) {
-      login.style.display = "block";
-      panel.style.display = "none";
+      // Usuario público temporal.
+      if (user.isAnonymous) {
+        login.style.display = "block";
+        panel.style.display = "none";
 
-      mostrarMsg(
-        "msg-login",
-        "error",
-        "Esta cuenta no tiene permisos de administración."
-      );
+        console.info(
+          "Sesión pública:",
+          {
+            uid: user.uid,
+            tipo: "anonymous",
+          }
+        );
 
-      await signOut(auth);
-      return;
-    }
+        return;
+      }
 
-    adminAutenticado = true;
+      try {
+        const tokenResult =
+          await user.getIdTokenResult(true);
 
-    login.style.display = "none";
-    panel.style.display = "block";
+        const esAdmin =
+          tokenResult.claims.admin === true;
 
-    document.getElementById(
-      "email-input"
-    ).value = "";
+        console.info(
+          "Resultado de autorización:",
+          {
+            email: user.email,
+            esAdmin,
+          }
+        );
 
-    document.getElementById(
-      "pwd-input"
-    ).value = "";
+        if (!esAdmin) {
+          login.style.display = "block";
+          panel.style.display = "none";
 
-    iniciarListenerReservasPrivadas();
-  } catch (error) {
-    console.error(
-      "No fue posible verificar el rol:",
-      error
-    );
+          mostrarMsg(
+            "msg-login",
+            "error",
+            "Esta cuenta no tiene permisos de administración."
+          );
 
-    login.style.display = "block";
-    panel.style.display = "none";
+          await signOut(auth);
+          return;
+        }
 
-    mostrarMsg(
-      "msg-login",
-      "error",
-      "No fue posible verificar los permisos de la cuenta."
-    );
+        adminAutenticado = true;
 
-    await signOut(auth);
-  }
-});
+        login.style.display = "none";
+        panel.style.display = "block";
+
+        document.getElementById(
+          "email-input"
+        ).value = "";
+
+        document.getElementById(
+          "pwd-input"
+        ).value = "";
+
+        iniciarListenerReservasPrivadas();
+      } catch (error) {
+        console.error(
+          "No fue posible verificar el rol:",
+          error
+        );
+
+        login.style.display = "block";
+        panel.style.display = "none";
+
+        mostrarMsg(
+          "msg-login",
+          "error",
+          "No fue posible verificar los permisos de la cuenta."
+        );
+
+        await signOut(auth);
+      }
+    });
 
     renderBloques();
   </script>
