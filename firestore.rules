@@ -1,0 +1,315 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function esAdmin() {
+      return request.auth != null
+        && request.auth.token.admin == true;
+    }
+
+    function esAnonimo() {
+      return request.auth != null
+        && request.auth.token.firebase.sign_in_provider
+          == "anonymous";
+    }
+
+    function puedeCrearReserva() {
+      return esAnonimo() || esAdmin();
+    }
+
+    function idCoincide(
+      reservaId,
+      diaISO,
+      hora
+    ) {
+      return reservaId
+        == diaISO + "_" + hora.replace(":", "-");
+    }
+
+    function fechaYHoraValidas(
+      diaISO,
+      hora
+    ) {
+      let fecha = timestamp.date(
+        int(diaISO[0:4]),
+        int(diaISO[5:7]),
+        int(diaISO[8:10])
+      );
+
+      let diaSemana = fecha.dayOfWeek();
+
+      return diaISO.matches(
+          "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        )
+        && hora.matches(
+          "^[0-9]{2}:[0-9]{2}$"
+        )
+
+        // Evita fechas inexistentes.
+        && fecha.year() == int(diaISO[0:4])
+        && fecha.month() == int(diaISO[5:7])
+        && fecha.day() == int(diaISO[8:10])
+
+        // Considera la diferencia entre UTC y Chile.
+        && fecha
+          >= request.time.date()
+            - duration.value(1, "d")
+
+        && fecha
+          < request.time.date()
+            + duration.value(15, "d")
+
+        // Lunes
+        && (
+          (
+            diaSemana == 1
+            && [
+              "20:00",
+              "21:00",
+              "22:00"
+            ].hasAny([hora])
+          )
+
+          // Martes y miércoles
+          || (
+            (
+              diaSemana == 2
+              || diaSemana == 3
+            )
+            && [
+              "18:00",
+              "19:00",
+              "20:00"
+            ].hasAny([hora])
+          )
+
+          // Jueves
+          || (
+            diaSemana == 4
+            && [
+              "20:00",
+              "21:00",
+              "22:00"
+            ].hasAny([hora])
+          )
+
+          // Viernes
+          || (
+            diaSemana == 5
+            && [
+              "15:00",
+              "16:00",
+              "17:00",
+              "18:00",
+              "19:00",
+              "20:00",
+              "21:00",
+              "22:00"
+            ].hasAny([hora])
+          )
+
+          // Sábado
+          || (
+            diaSemana == 6
+            && [
+              "11:00",
+              "12:00",
+              "13:00",
+              "14:00",
+              "15:00",
+              "16:00",
+              "17:00",
+              "18:00",
+              "19:00",
+              "20:00",
+              "21:00",
+              "22:00"
+            ].hasAny([hora])
+          )
+        );
+    }
+
+    function privadaCreadaJunto(
+      reservaId,
+      diaISO,
+      hora
+    ) {
+      let ruta = /databases/$(database)
+        /documents/reservas_privadas/$(reservaId);
+
+      return existsAfter(ruta)
+        && getAfter(ruta).data.diaISO == diaISO
+        && getAfter(ruta).data.hora == hora
+        && getAfter(ruta).data.ownerUid
+          == request.auth.uid;
+    }
+
+    function publicaCreadaJunto(
+      reservaId,
+      diaISO,
+      hora
+    ) {
+      let ruta = /databases/$(database)
+        /documents/disponibilidad_publica/$(reservaId);
+
+      return existsAfter(ruta)
+        && getAfter(ruta).data.diaISO == diaISO
+        && getAfter(ruta).data.hora == hora
+        && getAfter(ruta).data.ocupado == true;
+    }
+
+    match /disponibilidad_publica/{reservaId} {
+      allow read: if true;
+
+      allow create: if puedeCrearReserva()
+
+        && request.resource.data.keys().hasOnly([
+          "diaISO",
+          "hora",
+          "ocupado",
+          "createdAt"
+        ])
+
+        && request.resource.data.diaISO is string
+        && request.resource.data.hora is string
+
+        && idCoincide(
+          reservaId,
+          request.resource.data.diaISO,
+          request.resource.data.hora
+        )
+
+        && fechaYHoraValidas(
+          request.resource.data.diaISO,
+          request.resource.data.hora
+        )
+
+        && request.resource.data.ocupado == true
+        && request.resource.data.createdAt
+          == request.time
+
+        && privadaCreadaJunto(
+          reservaId,
+          request.resource.data.diaISO,
+          request.resource.data.hora
+        );
+
+      allow delete: if esAdmin();
+      allow update: if false;
+    }
+
+    match /reservas_privadas/{reservaId} {
+      allow read: if esAdmin();
+
+      allow create: if puedeCrearReserva()
+
+        && request.resource.data.keys().hasOnly([
+          "diaISO",
+          "hora",
+          "nombre",
+          "celular",
+          "estado",
+          "ownerUid",
+          "createdAt"
+        ])
+
+        && request.resource.data.diaISO is string
+        && request.resource.data.hora is string
+        && request.resource.data.nombre is string
+        && request.resource.data.celular is string
+        && request.resource.data.ownerUid is string
+
+        && idCoincide(
+          reservaId,
+          request.resource.data.diaISO,
+          request.resource.data.hora
+        )
+
+        && fechaYHoraValidas(
+          request.resource.data.diaISO,
+          request.resource.data.hora
+        )
+
+        && request.resource.data.nombre.size()
+          >= 3
+
+        && request.resource.data.nombre.size()
+          <= 100
+
+        && request.resource.data.celular.matches(
+          "^[0-9]{8,9}$"
+        )
+
+        && request.resource.data.estado
+          == "activa"
+
+        && request.resource.data.ownerUid
+          == request.auth.uid
+
+        && request.resource.data.createdAt
+          == request.time
+
+        && publicaCreadaJunto(
+          reservaId,
+          request.resource.data.diaISO,
+          request.resource.data.hora
+        );
+
+      allow delete: if esAdmin();
+      allow update: if false;
+    }
+
+    match /auditoria_cancelaciones/{registroId} {
+      allow read: if esAdmin();
+
+      allow create: if esAdmin()
+
+        && request.resource.data.keys().hasOnly([
+          "reservaId",
+          "diaISO",
+          "hora",
+          "nombre",
+          "celular",
+          "estadoAnterior",
+          "canceladaAt",
+          "canceladaPorUid",
+          "canceladaPorEmail"
+        ])
+
+        && request.resource.data.reservaId is string
+        && request.resource.data.diaISO is string
+        && request.resource.data.hora is string
+        && request.resource.data.nombre is string
+        && request.resource.data.celular is string
+
+        && idCoincide(
+          request.resource.data.reservaId,
+          request.resource.data.diaISO,
+          request.resource.data.hora
+        )
+
+        && request.resource.data.estadoAnterior
+          == "activa"
+
+        && request.resource.data.canceladaAt
+          == request.time
+
+        && request.resource.data.canceladaPorUid
+          == request.auth.uid
+
+        && request.resource.data.canceladaPorEmail
+          == request.auth.token.email;
+
+      allow update, delete: if false;
+    }
+
+    match /reservas/{reservaId} {
+      allow read, write: if false;
+    }
+
+    match /{documento=**} {
+      allow read, write: if false;
+    }
+  }
+}

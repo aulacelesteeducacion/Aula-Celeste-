@@ -1,0 +1,24 @@
+# Dependencias
+node_modules/
+
+# Firebase local
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+*-debug.log
+
+# Datos locales de emuladores
+emulator-data/
+
+# Variables y secretos
+.env
+.env.*
+!.env.example
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Configuración del editor
+.vscode/
