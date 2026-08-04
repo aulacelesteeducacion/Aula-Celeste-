@@ -1441,39 +1441,89 @@
       el.className = 'msg ' + tipo; el.textContent = texto;
       setTimeout(() => { el.className = 'msg'; }, 5000);
     }
-    onAuthStateChanged(auth, (user) => {
-      adminAutenticado = Boolean(user);
+onAuthStateChanged(auth, async (user) => {
+  adminAutenticado = false;
 
-      const login =
-        document.getElementById("admin-login");
+  const login =
+    document.getElementById("admin-login");
 
-      const panel =
-        document.getElementById("admin-panel");
+  const panel =
+    document.getElementById("admin-panel");
 
-      if (user) {
-        login.style.display = "none";
-        panel.style.display = "block";
+  detenerListenerReservasPrivadas();
 
-        document.getElementById(
-          "email-input"
-        ).value = "";
+  if (!user) {
+    login.style.display = "block";
+    panel.style.display = "none";
 
-        document.getElementById(
-          "pwd-input"
-        ).value = "";
+    document.getElementById(
+      "pwd-input"
+    ).value = "";
 
-        iniciarListenerReservasPrivadas();
-      } else {
-        detenerListenerReservasPrivadas();
+    return;
+  }
 
-        login.style.display = "block";
-        panel.style.display = "none";
+  try {
+    const tokenResult =
+      await user.getIdTokenResult(true);
 
-        document.getElementById(
-          "pwd-input"
-        ).value = "";
+    const esAdmin =
+      tokenResult.claims.admin === true;
+
+    console.info(
+      "Resultado de autorización:",
+      {
+        email: user.email,
+        esAdmin,
       }
-    });
+    );
+
+    if (!esAdmin) {
+      login.style.display = "block";
+      panel.style.display = "none";
+
+      mostrarMsg(
+        "msg-login",
+        "error",
+        "Esta cuenta no tiene permisos de administración."
+      );
+
+      await signOut(auth);
+      return;
+    }
+
+    adminAutenticado = true;
+
+    login.style.display = "none";
+    panel.style.display = "block";
+
+    document.getElementById(
+      "email-input"
+    ).value = "";
+
+    document.getElementById(
+      "pwd-input"
+    ).value = "";
+
+    iniciarListenerReservasPrivadas();
+  } catch (error) {
+    console.error(
+      "No fue posible verificar el rol:",
+      error
+    );
+
+    login.style.display = "block";
+    panel.style.display = "none";
+
+    mostrarMsg(
+      "msg-login",
+      "error",
+      "No fue posible verificar los permisos de la cuenta."
+    );
+
+    await signOut(auth);
+  }
+});
 
     renderBloques();
   </script>

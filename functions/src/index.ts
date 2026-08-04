@@ -350,7 +350,12 @@ export const cancelarReserva = onCall(
         "Debes iniciar sesión para cancelar una reserva.",
       );
     }
-
+     if (request.auth.token.admin !== true) {
+    throw new HttpsError(
+      "permission-denied",
+      "La cuenta no tiene permisos administrativos.",
+    );
+    }
     const data =
       (request.data ?? {}) as CancelarReservaData;
 

@@ -3,29 +3,35 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function estaAutenticado() {
-      return request.auth != null;
+    function esAdmin() {
+      return request.auth != null
+        && request.auth.token.admin == true;
     }
 
+    // Información pública: solo fecha, hora y estado ocupado.
     match /disponibilidad_publica/{bloqueId} {
       allow read: if true;
       allow write: if false;
     }
 
+    // Datos personales: únicamente administradores.
     match /reservas_privadas/{reservaId} {
-      allow read: if estaAutenticado();
+      allow read: if esAdmin();
       allow write: if false;
     }
 
+    // Historial de cancelaciones: únicamente administradores.
     match /auditoria_cancelaciones/{registroId} {
-      allow read: if estaAutenticado();
+      allow read: if esAdmin();
       allow write: if false;
     }
 
+    // Colección antigua bloqueada.
     match /reservas/{reservaId} {
       allow read, write: if false;
     }
 
+    // Bloqueo por defecto para cualquier otra colección.
     match /{documento=**} {
       allow read, write: if false;
     }
