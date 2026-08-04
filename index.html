@@ -177,8 +177,23 @@
             <h3>Acceso de supervisión</h3>
             <p>Ingresa la contraseña para ver y gestionar los agendamientos.</p>
             <div class="field-wrap">
-              <input type="password" id="pwd-input" placeholder="Contraseña" onkeydown="if(event.key==='Enter') verificarPwd()" />
-            </div>
+  <input
+    type="email"
+    id="email-input"
+    placeholder="Correo electrónico"
+    autocomplete="username"
+  />
+</div>
+
+<div class="field-wrap">
+  <input
+    type="password"
+    id="pwd-input"
+    placeholder="Contraseña"
+    autocomplete="current-password"
+    onkeydown="if(event.key === 'Enter') verificarPwd()"
+  />
+</div>
             <button class="btn-primary" onclick="verificarPwd()">🔐 Ingresar</button>
           </div>
         </div>
@@ -219,6 +234,13 @@
   doc,
   onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  getAuth,
+  connectAuthEmulator,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyD4x1DPMCzEjY33s3wFKSBAvxSQ0d7svPk",
@@ -231,6 +253,7 @@
 
   const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
 const esEntornoLocal =
   window.location.hostname === "localhost" ||
@@ -266,8 +289,14 @@ if (window.location.protocol === "file:") {
 if (esEntornoLocal) {
   connectFirestoreEmulator(db, "127.0.0.1", 8080);
 
+  connectAuthEmulator(
+    auth,
+    "http://127.0.0.1:9099",
+    { disableWarnings: true }
+  );
+
   console.info(
-    "MODO LOCAL: conectado a Firestore Emulator en 127.0.0.1:8080"
+    "MODO LOCAL: conectado a Firestore y Authentication Emulator"
   );
 } else {
   console.info(
@@ -284,7 +313,7 @@ if (esEntornoLocal) {
     6: { nombre: "Sábado",    horas: ["11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00","21:00","22:00"] },
   };
 
-  const PWD = "Romina12";
+
   const DIAS_ES = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
   const MESES_ES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
 
@@ -445,27 +474,47 @@ if (esEntornoLocal) {
     await deleteDoc(doc(db, 'reservas', id));
   };
 
-  window.verificarPwd = () => {
-    const val = document.getElementById('pwd-input').value;
-    if (val === PWD) {
-      adminAutenticado = true;
-      document.getElementById('admin-login').style.display = 'none';
-      document.getElementById('admin-panel').style.display = 'block';
-      renderAdmin();
-    } else {
-      const el = document.getElementById('msg-login');
-      el.className = 'msg error'; el.textContent = 'Contraseña incorrecta.';
-      document.getElementById('pwd-input').value = '';
-      setTimeout(() => { el.className = 'msg'; }, 3000);
-    }
-  };
+ window.verificarPwd = async () => {
+  const email = document
+    .getElementById("email-input")
+    .value
+    .trim();
 
-  window.cerrarSesion = () => {
-    adminAutenticado = false;
-    document.getElementById('admin-login').style.display = 'block';
-    document.getElementById('admin-panel').style.display = 'none';
-    document.getElementById('pwd-input').value = '';
-  };
+  const password = document
+    .getElementById("pwd-input")
+    .value;
+
+  if (!email || !password) {
+    mostrarMsg(
+      "msg-login",
+      "error",
+      "Ingresa el correo y la contraseña."
+    );
+    return;
+  }
+
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+  } catch (error) {
+    console.error("Error de autenticación:", error.code);
+
+    document.getElementById("pwd-input").value = "";
+
+    mostrarMsg(
+      "msg-login",
+      "error",
+      "No fue posible iniciar sesión. Revisa tus credenciales."
+    );
+  }
+};
+
+ window.cerrarSesion = async () => {
+  try {
+    await signOut(auth);
+  } catch (error) {
+    console.error("Error al cerrar sesión:", error);
+  }
+};
 
   window.switchTab = (tab, el) => {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -479,6 +528,27 @@ if (esEntornoLocal) {
     el.className = 'msg ' + tipo; el.textContent = texto;
     setTimeout(() => { el.className = 'msg'; }, 5000);
   }
+  onAuthStateChanged(auth, (user) => {
+  adminAutenticado = Boolean(user);
+
+  const login = document.getElementById("admin-login");
+  const panel = document.getElementById("admin-panel");
+
+  if (user) {
+    login.style.display = "none";
+    panel.style.display = "block";
+
+    document.getElementById("email-input").value = "";
+    document.getElementById("pwd-input").value = "";
+
+    renderAdmin();
+  } else {
+    login.style.display = "block";
+    panel.style.display = "none";
+
+    document.getElementById("pwd-input").value = "";
+  }
+});
 
   renderBloques();
 </script>
